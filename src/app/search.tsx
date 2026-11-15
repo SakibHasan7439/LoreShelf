@@ -121,7 +121,9 @@ export default function SearchScreen() {
     <View style={styles.resultsToolbar}>
       <View><AppText variant="sectionTitle">Your books</AppText><AppText variant="caption" color="muted">{results.length} {results.length === 1 ? 'match' : 'matches'}</AppText></View>
       <PressableScale onPress={() => setSortVisible((visible) => !visible)} style={styles.sortButton} accessibilityRole="button" accessibilityLabel={`Sort by ${sortLabel}`}>
-        <ArrowDownUp size={15} color={colors.gold[300]} /><AppText variant="caption" color="secondary">{sortLabel}</AppText><ChevronDown size={14} color={colors.text.muted} />
+        <View style={styles.sortContent}>
+          <ArrowDownUp size={15} color={colors.gold[300]} /><AppText variant="caption" color="secondary">{sortLabel}</AppText><ChevronDown size={14} color={colors.text.muted} />
+        </View>
       </PressableScale>
     </View>
 
@@ -154,7 +156,9 @@ export default function SearchScreen() {
           </ScrollView>
           <View style={styles.sheetFooter}>
             <PressableScale onPress={() => { setDraft(emptySearchFilters); setFilters(emptySearchFilters); }} style={styles.sheetClear} accessibilityRole="button" accessibilityLabel="Clear all filter selections"><AppText variant="meta" color="secondary">Clear all</AppText></PressableScale>
-            <PressableScale onPress={() => { setFilters(draft); setFilterVisible(false); }} style={styles.applyButton} accessibilityRole="button" accessibilityLabel="Apply filters"><AppText variant="button" color="inverse">Apply filters</AppText></PressableScale>
+            <PressableScale onPress={() => { setFilters(draft); setFilterVisible(false); }} style={styles.applyButton} accessibilityRole="button" accessibilityLabel="Apply filters"><View style={styles.applyContent}>
+    <AppText variant="button" color="inverse">Apply filters</AppText>
+  </View></PressableScale>
           </View>
         </View>
       </View>
@@ -163,7 +167,7 @@ export default function SearchScreen() {
 }
 
 function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return <PressableScale onPress={onRemove} style={styles.activeChip} accessibilityRole="button" accessibilityLabel={`Remove ${label} filter`}><AppText variant="caption" color="goldSoft" numberOfLines={1}>{label}</AppText><X size={12} color={colors.gold[300]} /></PressableScale>;
+  return <PressableScale onPress={onRemove} style={styles.activeChip} accessibilityRole="button" accessibilityLabel={`Remove ${label} filter`}><View style={styles.activeFilterContent}><AppText variant="caption" color="goldSoft" numberOfLines={1}>{label}</AppText><X size={12} color={colors.gold[300]} /></View></PressableScale>;
 }
 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
@@ -171,7 +175,21 @@ function FilterGroup({ title, children }: { title: string; children: React.React
 }
 
 function FilterChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  return <PressableScale onPress={onPress} style={[styles.filterChip, selected && styles.filterChipSelected]} accessibilityRole="button" accessibilityState={{ selected }}><AppText variant="caption" color={selected ? 'goldSoft' : 'secondary'}>{label}</AppText>{selected ? <Check size={13} color={colors.gold[300]} /> : null}</PressableScale>;
+  return (
+    <PressableScale
+      onPress={onPress}
+      style={[styles.filterChip, selected && styles.filterChipSelected]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
+      <View style={styles.filterChipContent}>
+        <AppText variant="caption" color={selected ? 'goldSoft' : 'secondary'} numberOfLines={1} style={styles.filterChipLabel}>
+          {label}
+        </AppText>
+        {selected ? <Check size={13} color={colors.gold[300]} /> : null}
+      </View>
+    </PressableScale>
+  );
 }
 
 function EmptyState({ title, body, action, onPress }: { title: string; body: string; action?: string; onPress: () => void }) {
@@ -191,7 +209,8 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 9, lineHeight: 13 },
   chipsArea: { marginTop: spacing.md },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  activeChip: { maxWidth: 190, minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: 'rgba(198,166,107,0.1)' },
+  activeChip: { maxWidth: 190, minHeight: 28, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: 'rgba(198,166,107,0.1)' },
+  activeFilterContent: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   clearAll: { alignSelf: 'flex-end', paddingVertical: spacing.xs, paddingHorizontal: spacing.xs },
   resultsToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.xxl, marginBottom: spacing.md },
   sortButton: { minHeight: 36, maxWidth: '58%', flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line.hairline, backgroundColor: colors.background.raised },
@@ -217,4 +236,8 @@ const styles = StyleSheet.create({
   sheetFooter: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.line.hairline },
   sheetClear: { minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.md },
   applyButton: { flex: 1, minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: radius.md, backgroundColor: colors.gold[400] },
+  sortContent: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  applyContent: { width: '100%', alignItems: 'center', justifyContent: 'center' },
+  filterChipContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filterChipLabel: { flexShrink: 1 },
 });
