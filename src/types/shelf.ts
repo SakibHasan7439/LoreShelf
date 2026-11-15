@@ -7,6 +7,8 @@ export interface Shelf {
   name: string;
   tagline: string;
   glyph: ShelfGlyph;
+  description?: string;
+  isCustom?: boolean;
   /** Muted, low-contrast gradient used by the shelf card surface. */
   tint: readonly [string, string];
 }

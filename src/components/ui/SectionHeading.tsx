@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 
 import { AppText } from '@/components/ui/AppText';
@@ -10,13 +10,15 @@ interface SectionHeadingProps {
   title: string;
   actionLabel?: string;
   onActionPress?: () => void;
+  /** Extra style applied to the outer container (e.g. top margin between form sections). */
+  style?: StyleProp<ViewStyle>;
 }
 
-export function SectionHeading({ title, actionLabel, onActionPress }: SectionHeadingProps) {
+export function SectionHeading({ title, actionLabel, onActionPress, style }: SectionHeadingProps) {
   const handlePress = useCallback(() => onActionPress?.(), [onActionPress]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <AppText variant="sectionTitle">{title}</AppText>
 
       {actionLabel && onActionPress ? (

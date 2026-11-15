@@ -57,6 +57,7 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="book/[id]" options={{ presentation: 'card' }} />
+      <Stack.Screen name="add-book" options={{ presentation: 'card' }} />
     </Stack>
   );
 }
