@@ -27,6 +27,14 @@ export const colors = {
     500: '#355B46',
     600: '#274434',
   },
+  /** Muted indigo reserved for the floating "Add a Book" action. */
+  blue: {
+    300: '#8FB0D9',
+    400: '#6E93C2',
+    500: '#3F6490',
+    600: '#24405E',
+    700: '#1A2F47',
+  },
   text: {
     primary: '#F2EBDD',
     secondary: '#B8B1A3',

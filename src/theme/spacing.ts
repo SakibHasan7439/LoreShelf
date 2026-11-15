@@ -28,5 +28,8 @@ export const layout = {
   /** Keeps content readable on tablets and foldables. */
   maxContentWidth: 560,
   tabBarBaseHeight: 58,
-  fabSize: 56,
+  /** Vertical space the floating action button needs above the tab bar. */
+  fabClearance: 76,
+  /** Distance between the floating action button and the tab bar. */
+  fabGap: 12,
 } as const;

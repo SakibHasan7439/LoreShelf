@@ -61,7 +61,20 @@ export default function EditBookScreen() {
     <Field label="PAGE COUNT" value={pageCount} onChangeText={setPageCount} placeholder="Leave blank if unknown" keyboardType="number-pad" />
     <Field label="DESCRIPTION" value={description} onChangeText={setDescription} placeholder="A short description" multiline />
 
-    <View style={styles.footer}><PressableScale onPress={() => router.back()} style={styles.cancel} accessibilityRole="button" accessibilityLabel="Cancel book changes"><AppText variant="meta" color="secondary">Cancel</AppText></PressableScale><PressableScale onPress={save} style={styles.save} accessibilityRole="button" accessibilityLabel="Save book changes"><View style={styles.saveInner}><Check size={17} color={colors.text.inverse} /><AppText variant="button" color="inverse">Save changes</AppText></View></PressableScale></View>
+    <View style={styles.footer}>
+      <PressableScale onPress={() => router.back()} style={styles.cancel} accessibilityRole="button" accessibilityLabel="Cancel book changes">,
+        <AppText variant="meta" color="secondary">
+          Cancel
+        </AppText>
+      </PressableScale>
+      <PressableScale onPress={save} style={styles.save} accessibilityRole="button" accessibilityLabel="Save book changes">
+        <View style={styles.saveInner}>
+          <Check size={17} color={colors.text.inverse} style={{ marginLeft: 8 }} 
+          />
+            <AppText variant="button" color="inverse">Save changes</AppText>
+        </View>
+      </PressableScale>
+    </View>
   </Screen>;
 }
 

@@ -4,7 +4,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-import { colors, gradients, layout, spacing } from '@/theme';
+import { colors, gradients, layout } from '@/theme';
 import { ScrollView } from 'react-native';
 
 interface ScreenProps {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPadding,
   },
   scrollTail: {
-    height: spacing.xxl,
+    height: layout.fabClearance,
   },
   glowWrapper: {
     position: 'absolute',

@@ -10,6 +10,7 @@ export const gradients = {
   gold: ['#E9D3A6', '#C6A66B'] as GradientStops,
   goldPressed: ['#D8BC85', '#AE8B52'] as GradientStops,
   emeraldCard: ['#1D2C23', '#131B16'] as GradientStops,
+  fabBlue: ['#3F6490', '#24405E'] as GradientStops,
   coverSheen: ['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0)'] as GradientStops,
   coverShade: ['rgba(7, 10, 8, 0)', 'rgba(7, 10, 8, 0.55)'] as GradientStops,
   hairline: ['rgba(226, 197, 141, 0)', 'rgba(226, 197, 141, 0.45)', 'rgba(226, 197, 141, 0)'] as GradientStops,

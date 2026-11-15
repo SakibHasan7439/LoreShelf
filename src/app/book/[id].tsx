@@ -84,12 +84,18 @@ export default function BookDetailsScreen() {
   return <Screen>
     <Stack.Screen options={{ headerShown: false }} />
     <View style={styles.topBar}>
-      <PressableScale onPress={() => router.back()} style={styles.topButton} accessibilityRole="button" accessibilityLabel="Go back"><ArrowLeft size={19} color={colors.text.primary} /></PressableScale>
-      <AppText variant="label" color="gold">A BOOK IN YOUR LIBRARY</AppText>
-      <PressableScale onPress={() => toggleFavorite(book.id)} style={[styles.topButton, book.isFavorite && styles.favoriteButton]} accessibilityRole="button" accessibilityLabel={book.isFavorite ? 'Remove from favourites' : 'Add to favourites'} accessibilityState={{ selected: book.isFavorite }}>
-        <Heart size={19} color={book.isFavorite ? colors.gold[200] : colors.text.secondary} fill={book.isFavorite ? colors.gold[400] : 'transparent'} />
-      </PressableScale>
+  <PressableScale onPress={() => router.back()} style={styles.topButton} accessibilityRole="button" accessibilityLabel="Go back">
+    <View style={styles.topButtonContent}>
+      <ArrowLeft size={19} color={colors.text.primary} />
     </View>
+  </PressableScale>
+  <AppText variant="label" color="gold" numberOfLines={1} style={styles.topBarLabel}>A BOOK IN YOUR LIBRARY</AppText>
+  <PressableScale onPress={() => toggleFavorite(book.id)} style={[styles.topButton, book.isFavorite && styles.favoriteButton]} accessibilityRole="button" accessibilityLabel={book.isFavorite ? 'Remove from favourites' : 'Add to favourites'} accessibilityState={{ selected: book.isFavorite }}>
+    <View style={styles.topButtonContent}>
+      <Heart size={19} color={book.isFavorite ? colors.gold[200] : colors.text.secondary} fill={book.isFavorite ? colors.gold[400] : 'transparent'} />
+    </View>
+  </PressableScale>
+</View>
 
     <View style={styles.hero}>
       <LinearGradient colors={[colors.background.elevated, colors.background.base, colors.background.deep]} style={StyleSheet.absoluteFill} />
@@ -132,22 +138,24 @@ export default function BookDetailsScreen() {
         const selected = book.readingStatus === status;
         const StatusIcon = readingStatusMeta[status].icon;
         return <PressableScale key={status} onPress={() => setReadingStatus(book.id, status)} style={[styles.status, selected && styles.selectedStatus]} accessibilityRole="button" accessibilityState={{ selected }}>
-          <StatusIcon size={15} color={selected ? colors.gold[300] : colors.text.muted} />
-          <AppText variant="meta" color={selected ? 'goldSoft' : 'secondary'}>{readingStatusMeta[status].label}</AppText>
-          {selected ? <Check size={14} color={colors.gold[300]} /> : null}
+          <View style={styles.statusContent}>
+            <StatusIcon size={15} color={selected ? colors.gold[300] : colors.text.muted} />
+            <AppText variant="meta" color={selected ? 'goldSoft' : 'secondary'} numberOfLines={1} ellipsizeMode="tail" style={styles.statusLabel}>{readingStatusMeta[status].label}</AppText>
+            {selected ? <Check size={14} color={colors.gold[300]} /> : null}
+          </View>
         </PressableScale>;
       })}</View>
     </View>
 
     <View style={styles.actions}>
-      <PressableScale onPress={() => router.push({ pathname: '/book/edit/[id]', params: { id: book.id } })} style={styles.editAction} accessibilityRole="button" accessibilityLabel="Edit book details"><Pencil size={16} color={colors.gold[300]} /><AppText variant="meta" color="gold">Edit details</AppText></PressableScale>
-      {book.ownership === 'wishlist' ? <PressableScale onPress={() => moveToCollection(book.id)} style={styles.collectionAction} accessibilityRole="button" accessibilityLabel="Move book to collection"><Plus size={17} color={colors.text.inverse} /><AppText variant="button" color="inverse">Move to collection</AppText></PressableScale> : null}
-      <PressableScale onPress={confirmRemoval} style={styles.removeAction} accessibilityRole="button" accessibilityLabel="Remove book from library"><Trash2 size={16} color={colors.state.danger} /><AppText variant="meta" color="danger">Remove from library</AppText></PressableScale>
+      <PressableScale onPress={() => router.push({ pathname: '/book/edit/[id]', params: { id: book.id } })} style={styles.editAction} accessibilityRole="button" accessibilityLabel="Edit book details"><View style={styles.actionContent}><Pencil size={16} color={colors.gold[300]} /><AppText variant="meta" color="gold" numberOfLines={1}>Edit details</AppText></View></PressableScale>
+      {book.ownership === 'wishlist' ? <PressableScale onPress={() => moveToCollection(book.id)} style={styles.collectionAction} accessibilityRole="button" accessibilityLabel="Move book to collection"><View style={styles.actionContent}><Plus size={17} color={colors.text.inverse} /><AppText variant="button" color="inverse" numberOfLines={1}>Move to collection</AppText></View></PressableScale> : null}
+      <PressableScale onPress={confirmRemoval} style={styles.removeAction} accessibilityRole="button" accessibilityLabel="Remove book from library"><View style={styles.actionContent}><Trash2 size={16} color={colors.state.danger} /><AppText variant="meta" color="danger" numberOfLines={1}>Remove from library</AppText></View></PressableScale>
     </View>
 
     <Modal visible={notesVisible} transparent animationType="slide" onRequestClose={() => setNotesVisible(false)}>
       <View style={styles.modalRoot}><Pressable onPress={() => setNotesVisible(false)} style={styles.scrim} accessibilityRole="button" accessibilityLabel="Cancel note editing" /><View style={styles.modalCard}>
-        <View style={styles.modalHeader}><View><AppText variant="sectionTitle">A note for this story</AppText><AppText variant="caption" color="secondary">Your thoughts stay with this book.</AppText></View><PressableScale onPress={() => setNotesVisible(false)} style={styles.modalClose} accessibilityRole="button" accessibilityLabel="Close notes"><ChevronDown size={19} color={colors.text.secondary} /></PressableScale></View>
+        <View style={styles.modalHeader}><View style={styles.modalHeaderCopy}><AppText variant="sectionTitle" numberOfLines={1}>A note for this story</AppText><AppText variant="caption" color="secondary" numberOfLines={1}>Your thoughts stay with this book.</AppText></View><PressableScale onPress={() => setNotesVisible(false)} style={styles.modalClose} accessibilityRole="button" accessibilityLabel="Close notes"><ChevronDown size={19} color={colors.text.secondary} /></PressableScale></View>
         <TextInput value={notesDraft} onChangeText={setNotesDraft} placeholder="A favorite passage, a thought, a reread note…" placeholderTextColor={colors.text.muted} multiline maxLength={1200} textAlignVertical="top" accessibilityLabel="Personal book notes" style={styles.notesInput} />
         <View style={styles.modalButtons}><PressableScale onPress={() => setNotesVisible(false)} style={styles.cancelButton} accessibilityRole="button" accessibilityLabel="Cancel note changes"><AppText variant="meta" color="secondary">Cancel</AppText></PressableScale><PressableScale onPress={() => { updateNotes(book.id, notesDraft); setNotesVisible(false); }} style={styles.saveButton} accessibilityRole="button" accessibilityLabel="Save personal notes"><AppText variant="button" color="inverse">Save note</AppText></PressableScale></View>
       </View></View>
@@ -155,7 +163,7 @@ export default function BookDetailsScreen() {
 
     <Modal visible={pageVisible} transparent animationType="slide" onRequestClose={() => setPageVisible(false)}>
       <View style={styles.modalRoot}><Pressable onPress={() => setPageVisible(false)} style={styles.scrim} accessibilityRole="button" accessibilityLabel="Cancel page update" /><View style={styles.modalCard}>
-        <View style={styles.modalHeader}><View><AppText variant="sectionTitle">Where did you pause?</AppText><AppText variant="caption" color="secondary">Enter a page from 0 to {book.pageCount}.</AppText></View><PressableScale onPress={() => setPageVisible(false)} style={styles.modalClose} accessibilityRole="button" accessibilityLabel="Close page editor"><ChevronDown size={19} color={colors.text.secondary} /></PressableScale></View>
+        <View style={styles.modalHeader}><View style={styles.modalHeaderCopy}><AppText variant="sectionTitle" numberOfLines={1}>Where did you pause?</AppText><AppText variant="caption" color="secondary" numberOfLines={1}>Enter a page from 0 to {book.pageCount}.</AppText></View><PressableScale onPress={() => setPageVisible(false)} style={styles.modalClose} accessibilityRole="button" accessibilityLabel="Close page editor"><ChevronDown size={19} color={colors.text.secondary} /></PressableScale></View>
         <View style={styles.pageInputRow}><TextInput value={pageDraft} onChangeText={setPageDraft} keyboardType="number-pad" maxLength={String(book.pageCount ?? 0).length || 1} selectTextOnFocus accessibilityLabel="Current page" style={styles.pageInput} /><AppText variant="body" color="muted">of {book.pageCount} pages</AppText></View>
         <View style={styles.modalButtons}><PressableScale onPress={() => setPageVisible(false)} style={styles.cancelButton} accessibilityRole="button" accessibilityLabel="Cancel page update"><AppText variant="meta" color="secondary">Cancel</AppText></PressableScale><PressableScale onPress={savePage} style={styles.saveButton} accessibilityRole="button" accessibilityLabel="Save current page"><AppText variant="button" color="inverse">Save progress</AppText></PressableScale></View>
       </View></View>
@@ -168,7 +176,8 @@ function MetadataItem({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.xs, marginBottom: spacing.md },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs, marginBottom: spacing.md },
+  topBarLabel: { flex: 1, textAlign: 'center' },
   topButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line.hairline, backgroundColor: colors.background.raised },
   favoriteButton: { borderColor: colors.line.strong, backgroundColor: 'rgba(198,166,107,0.12)' },
   hero: { position: 'relative', alignItems: 'center', overflow: 'hidden', paddingTop: spacing.xl, paddingBottom: spacing.xl, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.line.hairline },
@@ -196,30 +205,35 @@ const styles = StyleSheet.create({
   moreButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, alignSelf: 'flex-start', marginTop: spacing.sm, paddingVertical: spacing.xs },
   chevronUp: { transform: [{ rotate: '180deg' }] },
   notesCard: { marginTop: spacing.xxl, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: 'rgba(143,179,156,0.2)', backgroundColor: 'rgba(20,29,23,0.84)' },
-  notesHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  noteEdit: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.xs },
+  notesHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  noteEdit: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.xs },
   noteText: { marginTop: spacing.md },
   noNotes: { marginTop: spacing.md, lineHeight: 21 },
   statusTitle: { marginBottom: spacing.xxs },
   statusHint: { marginBottom: spacing.md },
   statuses: { gap: spacing.sm },
-  status: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.hairline, backgroundColor: colors.background.raised },
+  status: { minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.hairline, backgroundColor: colors.background.raised },
+  statusContent: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 5 },
+  statusLabel: { flex: 1, minWidth: 0 },
   selectedStatus: { borderColor: colors.gold[500], backgroundColor: 'rgba(198,166,107,0.1)' },
   actions: { gap: spacing.sm, marginTop: spacing.xxl },
-  editAction: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: colors.background.raised },
-  collectionAction: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md, backgroundColor: colors.gold[400] },
-  removeAction: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md },
+  actionContent: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.sm },
+  editAction: { minHeight: 50, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: colors.background.raised },
+  collectionAction: { minHeight: 50, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radius.md, backgroundColor: colors.gold[400] },
+  removeAction: { minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radius.md },
   notFound: { flex: 1, justifyContent: 'center', gap: spacing.lg },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(4,7,5,0.48)' },
   scrim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   modalCard: { padding: spacing.lg, paddingBottom: spacing.xxl, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, borderWidth: 1, borderBottomWidth: 0, borderColor: colors.line.soft, backgroundColor: colors.background.base },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
+  modalHeaderCopy: { flex: 1, minWidth: 0 },
   modalClose: { width: 38, height: 38, justifyContent: 'center', alignItems: 'center', borderRadius: radius.pill, backgroundColor: colors.background.raised },
   notesInput: { minHeight: 150, maxHeight: 260, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: colors.background.raised, color: colors.text.primary, fontFamily: 'Inter-Regular', fontSize: 14, lineHeight: 22 },
   pageInputRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft, backgroundColor: colors.background.raised },
   pageInput: { minWidth: 70, color: colors.text.primary, fontFamily: 'Inter-SemiBold', fontSize: 24 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.lg },
-  cancelButton: { minHeight: 46, justifyContent: 'center', paddingHorizontal: spacing.lg, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft },
-  saveButton: { minHeight: 46, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.xl, borderRadius: radius.md, backgroundColor: colors.gold[400] },
+  modalButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
+  cancelButton: { flex: 1, minWidth: 0, minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line.soft },
+  topButtonContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  saveButton: { flex: 1, minWidth: 0, minHeight: 46, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.sm, borderRadius: radius.md, backgroundColor: colors.gold[400] },
 });
