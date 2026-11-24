@@ -1,8 +1,8 @@
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { Stack } from 'expo-router';
+import { Stack, type Href } from 'expo-router';
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import {
   CormorantGaramond_400Regular,
@@ -19,10 +19,19 @@ import {
 } from '@expo-google-fonts/inter';
 
 import { colors } from '@/theme';
+import { AppText } from '@/components/ui/AppText';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { useAuthStore } from '@/store/auth';
+import { useLibraryStore } from '@/store/library';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const authStatus = useAuthStore((state) => state.status);
+  const restoreError = useAuthStore((state) => state.restoreError);
+  const restoreSession = useAuthStore((state) => state.restoreSession);
+  const loadLibrary = useLibraryStore((state) => state.loadLibrary);
+  const clearLibrary = useLibraryStore((state) => state.clearLibrary);
   const [loaded, error] = useFonts({
     'CormorantGaramond-Regular': CormorantGaramond_400Regular,
     'CormorantGaramond-Medium': CormorantGaramond_500Medium,
@@ -41,6 +50,18 @@ export default function RootLayout() {
     }
   }, [loaded, error]);
 
+  useEffect(() => {
+    void restoreSession();
+  }, [restoreSession]);
+
+  useEffect(() => {
+    if (authStatus === 'authenticated') {
+      void loadLibrary();
+    } else {
+      clearLibrary();
+    }
+  }, [authStatus, clearLibrary, loadLibrary]);
+
   if (error) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', padding: 24, backgroundColor: colors.background.base }}>
@@ -53,11 +74,45 @@ export default function RootLayout() {
     return null;
   }
 
+  if (authStatus === 'initializing') {
+    return <View style={styles.sessionState}><ActivityIndicator color={colors.gold[300]} /></View>;
+  }
+
+  if (authStatus === 'error') {
+    return (
+      <View style={styles.sessionState}>
+        <AppText variant="screenTitle">Your shelves are waiting.</AppText>
+        <AppText color="secondary" style={styles.restoreError}>{restoreError}</AppText>
+        <PressableScale onPress={() => void restoreSession()} style={styles.retryButton} accessibilityRole="button">
+          <AppText variant="button" color="inverse">Try again</AppText>
+        </PressableScale>
+      </View>
+    );
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="book/[id]" options={{ presentation: 'card' }} />
-      <Stack.Screen name="add-book" options={{ presentation: 'card' }} />
+      <Stack.Screen name="index" />
+      <Stack.Protected guard={authStatus === 'unauthenticated'} redirectTo="/(tabs)">
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={authStatus === 'authenticated'} redirectTo={'/login' as Href}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="book/[id]" options={{ presentation: 'card' }} />
+        <Stack.Screen name="book/edit/[id]" options={{ presentation: 'card' }} />
+        <Stack.Screen name="add-book" options={{ presentation: 'card' }} />
+        <Stack.Screen name="search" options={{ presentation: 'card' }} />
+        <Stack.Screen name="bookshelves/index" />
+        <Stack.Screen name="bookshelves/[id]" />
+        <Stack.Screen name="bookshelves/edit" />
+        <Stack.Screen name="bookshelves/manage/[id]" />
+      </Stack.Protected>
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  sessionState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 28, backgroundColor: colors.background.base },
+  restoreError: { maxWidth: 360, textAlign: 'center' },
+  retryButton: { minWidth: 150, minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, borderRadius: 14, backgroundColor: colors.gold[300] },
+});

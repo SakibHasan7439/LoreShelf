@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
+import { LibraryFeedback } from '@/components/library/LibraryFeedback';
 import { AppText } from '@/components/ui/AppText';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
@@ -21,6 +22,11 @@ const COVER_HEIGHT = 142;
 
 export default function HomeScreen() {
   const books = useLibraryStore((state) => state.books);
+  const isLoading = useLibraryStore((state) => state.isLoading);
+  const hasLoaded = useLibraryStore((state) => state.hasLoaded);
+  const error = useLibraryStore((state) => state.error);
+  const loadLibrary = useLibraryStore((state) => state.loadLibrary);
+  const dismissError = useLibraryStore((state) => state.dismissError);
   const reading = useMemo(() => books.filter((book) => book.readingStatus === 'reading'), [books]);
   const owned = useMemo(() => books.filter((book) => book.ownership === 'owned'), [books]);
   const completed = useMemo(() => books.filter((book) => book.readingStatus === 'completed'), [books]);
@@ -49,6 +55,15 @@ export default function HomeScreen() {
         </PressableScale>
       </View>
 
+      {!hasLoaded ? (
+        <LibraryFeedback
+          loading={isLoading || !error}
+          message={error}
+          onRetry={error ? () => { void loadLibrary(); } : undefined}
+        />
+      ) : (
+        <>
+      {error ? <LibraryFeedback message={error} onDismiss={dismissError} /> : null}
       <View style={styles.stats}>
         <Stat icon={<Library size={16} color={colors.gold[300]} />} label="Books" value={owned.length} />
         <Stat icon={<BookOpen size={16} color={colors.emerald[200]} />} label="Reading" value={reading.length} />
@@ -106,6 +121,8 @@ export default function HomeScreen() {
         <QuickAction icon={<Plus size={17} color={colors.text.inverse} />} title="Add a book" subtitle="Welcome a new story" primary onPress={() => router.push('/add-book')} />
         <QuickAction icon={<Library size={17} color={colors.gold[300]} />} title="My collection" subtitle={`${owned.length} books on your shelves`} onPress={() => router.push('/(tabs)/collection')} />
       </View>
+        </>
+      )}
     </Screen>
   );
 }

@@ -5,6 +5,7 @@ import { Alert, Modal, Pressable, StyleSheet, TextInput, View } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { BookCover } from '@/components/BookCover';
+import { LibraryFeedback } from '@/components/library/LibraryFeedback';
 import { AppText } from '@/components/ui/AppText';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
@@ -23,11 +24,17 @@ export default function BookDetailsScreen() {
   const setCurrentPage = useLibraryStore((state) => state.setCurrentPage);
   const updateNotes = useLibraryStore((state) => state.updateNotes);
   const removeBook = useLibraryStore((state) => state.removeBook);
+  const isLoadingLibrary = useLibraryStore((state) => state.isLoading);
+  const hasLoadedLibrary = useLibraryStore((state) => state.hasLoaded);
+  const libraryError = useLibraryStore((state) => state.error);
+  const loadLibrary = useLibraryStore((state) => state.loadLibrary);
+  const dismissLibraryError = useLibraryStore((state) => state.dismissError);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [notesVisible, setNotesVisible] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
   const [pageVisible, setPageVisible] = useState(false);
   const [pageDraft, setPageDraft] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const genres = useMemo(() => (book?.shelves ?? [])
     .filter((shelfId) => shelfId !== 'favorites')
@@ -37,12 +44,23 @@ export default function BookDetailsScreen() {
   if (!book) {
     return <Screen>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.notFound}>
-        <AppText variant="screenTitle">This book could not be found.</AppText>
-        <PressableScale onPress={() => router.back()} style={styles.backLink} accessibilityRole="button" accessibilityLabel="Go back">
-          <ArrowLeft size={17} color={colors.gold[300]} /><AppText variant="button" color="gold">Go back</AppText>
-        </PressableScale>
-      </View>
+      {!hasLoadedLibrary ? (
+        <LibraryFeedback
+          loading={isLoadingLibrary || !libraryError}
+          message={libraryError}
+          onRetry={libraryError ? () => { void loadLibrary(); } : undefined}
+        />
+      ) : (
+        <>
+          {libraryError ? <LibraryFeedback message={libraryError} onDismiss={dismissLibraryError} /> : null}
+          <View style={styles.notFound}>
+            <AppText variant="screenTitle">This book could not be found.</AppText>
+            <PressableScale onPress={() => router.back()} style={styles.backLink} accessibilityRole="button" accessibilityLabel="Go back">
+              <ArrowLeft size={17} color={colors.gold[300]} /><AppText variant="button" color="gold">Go back</AppText>
+            </PressableScale>
+          </View>
+        </>
+      )}
     </Screen>;
   }
 
@@ -52,12 +70,21 @@ export default function BookDetailsScreen() {
   const progressRecorded = book.readingStatus === 'completed' || book.currentPage !== undefined;
   const longDescription = (book.description?.length ?? 0) > 190;
 
+  const removeAndReturn = async () => {
+    setIsDeleting(true);
+    try {
+      if (await removeBook(book.id)) router.back();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const confirmRemoval = () => Alert.alert(
     'Remove this book?',
     `“${book.title}” will be removed from your library. This cannot be undone.`,
     [
       { text: 'Keep book', style: 'cancel' },
-      { text: 'Remove book', style: 'destructive', onPress: () => { removeBook(book.id); router.back(); } },
+      { text: 'Remove book', style: 'destructive', onPress: () => { void removeAndReturn(); } },
     ]
   );
 
@@ -83,6 +110,7 @@ export default function BookDetailsScreen() {
 
   return <Screen>
     <Stack.Screen options={{ headerShown: false }} />
+    {libraryError ? <LibraryFeedback message={libraryError} onDismiss={dismissLibraryError} /> : null}
     <View style={styles.topBar}>
   <PressableScale onPress={() => router.back()} style={styles.topButton} accessibilityRole="button" accessibilityLabel="Go back">
     <View style={styles.topButtonContent}>
@@ -150,7 +178,7 @@ export default function BookDetailsScreen() {
     <View style={styles.actions}>
       <PressableScale onPress={() => router.push({ pathname: '/book/edit/[id]', params: { id: book.id } })} style={styles.editAction} accessibilityRole="button" accessibilityLabel="Edit book details"><View style={styles.actionContent}><Pencil size={16} color={colors.gold[300]} /><AppText variant="meta" color="gold" numberOfLines={1}>Edit details</AppText></View></PressableScale>
       {book.ownership === 'wishlist' ? <PressableScale onPress={() => moveToCollection(book.id)} style={styles.collectionAction} accessibilityRole="button" accessibilityLabel="Move book to collection"><View style={styles.actionContent}><Plus size={17} color={colors.text.inverse} /><AppText variant="button" color="inverse" numberOfLines={1}>Move to collection</AppText></View></PressableScale> : null}
-      <PressableScale onPress={confirmRemoval} style={styles.removeAction} accessibilityRole="button" accessibilityLabel="Remove book from library"><View style={styles.actionContent}><Trash2 size={16} color={colors.state.danger} /><AppText variant="meta" color="danger" numberOfLines={1}>Remove from library</AppText></View></PressableScale>
+      <PressableScale onPress={confirmRemoval} disabled={isDeleting} style={styles.removeAction} accessibilityRole="button" accessibilityLabel="Remove book from library" accessibilityState={{ disabled: isDeleting, busy: isDeleting }}><View style={styles.actionContent}><Trash2 size={16} color={colors.state.danger} /><AppText variant="meta" color="danger" numberOfLines={1}>{isDeleting ? 'Removing…' : 'Remove from library'}</AppText></View></PressableScale>
     </View>
 
     <Modal visible={notesVisible} transparent animationType="slide" onRequestClose={() => setNotesVisible(false)}>

@@ -1,17 +1,29 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 
 import { AppText } from '@/components/ui/AppText';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { profile } from '@/data/profile';
 import { useLibraryStats } from '@/hooks/useLibraryStats';
-import { useLibraryStore } from '@/store/library';
+import { useAuthStore } from '@/store/auth';
 import { colors, radius, spacing } from '@/theme';
 
 export default function ProfileScreen() {
   const stats = useLibraryStats();
-  const isSampleLibrary = useLibraryStore((state) => state.isSampleLibrary);
-  const setSampleLibrary = useLibraryStore((state) => state.setSampleLibrary);
+  const signOut = useAuthStore((state) => state.signOut);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch {
+      Alert.alert('Signed out on this device', 'We could not contact the server to revoke this session. Your saved sign-in has been cleared from this device.');
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   return (
     <Screen>
@@ -29,12 +41,12 @@ export default function ProfileScreen() {
       </View>
 
       <PressableScale
-        onPress={() => setSampleLibrary(!isSampleLibrary)}
+        onPress={() => void handleSignOut()}
+        disabled={signingOut}
         accessibilityRole="button"
-        style={styles.action}>
-        <AppText variant="button" color="gold">
-          {isSampleLibrary ? 'Preview empty library' : 'Restore sample library'}
-        </AppText>
+        accessibilityState={{ disabled: signingOut, busy: signingOut }}
+        style={styles.signOutAction}>
+        <AppText variant="button" color="secondary">{signingOut ? 'Signing out…' : 'Sign out'}</AppText>
       </PressableScale>
     </Screen>
   );
@@ -63,10 +75,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     backgroundColor: colors.background.raised,
   },
-  action: {
+  signOutAction: {
     alignItems: 'center',
     padding: spacing.lg,
+    marginTop: spacing.md,
     borderRadius: radius.md,
-    backgroundColor: colors.background.elevated,
+    borderWidth: 1,
+    borderColor: colors.line.soft,
   },
 });

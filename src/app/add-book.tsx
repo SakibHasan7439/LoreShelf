@@ -60,6 +60,7 @@ export default function AddBookScreen() {
   const [searchFailed, setSearchFailed] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState('');
+  const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [savedBook, setSavedBook] = useState<Book | null>(null);
   const saveProgress = useSharedValue(0);
   const saveProgressRef = useRef(saveProgress);
@@ -194,39 +195,40 @@ export default function AddBookScreen() {
 
   useEffect(() => () => cancelAnimation(saveProgressRef.current), []);
 
-  const handleConfirmAdd = useCallback(() => {
+  const handleConfirmAdd = useCallback(async () => {
     if (saveInProgress.current) return;
     saveInProgress.current = true;
     setSaveError('');
+    setSaveWarning(null);
+    setSaveState('saving');
     const candidate = selectedCandidate;
-    try {
-      addBook({
-        title: candidate?.title ?? title.trim(),
-        author: candidate?.authors.join(', ') || author.trim(),
-        publisher: candidate?.publisher ?? (publisher.trim() || undefined),
-        notes: notes.trim() || undefined,
-        ownership: 'wishlist',
-        coverUrl: candidate?.cover,
-        customCoverUri: coverUri ?? undefined,
-        isCustom: !candidate,
-        source: candidate?.source ?? 'manual',
-        coverSource: candidate?.source,
-        description: candidate?.description,
-        isbn: candidate?.isbn,
-        publicationDate: candidate?.publicationDate,
-        pageCount: candidate?.pageCount,
-        externalId: candidate?.externalId,
-        providerSource: candidate?.source,
-      });
-    } catch {
+    const saved = await addBook({
+      title: candidate?.title ?? title.trim(),
+      author: candidate?.authors.join(', ') || author.trim(),
+      publisher: candidate?.publisher ?? (publisher.trim() || undefined),
+      notes: notes.trim() || undefined,
+      ownership: 'wishlist',
+      coverUrl: candidate?.cover,
+      customCoverUri: coverUri ?? undefined,
+      isCustom: !candidate,
+      source: candidate?.source ?? 'manual',
+      coverSource: candidate?.source,
+      description: candidate?.description,
+      isbn: candidate?.isbn,
+      publicationDate: candidate?.publicationDate,
+      pageCount: candidate?.pageCount,
+      externalId: candidate?.externalId,
+      providerSource: candidate?.source,
+    });
+    if (!saved) {
       saveInProgress.current = false;
-      setSaveError('Your book could not be saved. Please try again.');
+      setSaveError(useLibraryStore.getState().error ?? 'Your book could not be saved. Please try again.');
       setSaveState('error');
       return;
     }
 
-    setSavedBook(previewBook);
-    setSaveState('saving');
+    setSavedBook(saved);
+    setSaveWarning(useLibraryStore.getState().error);
     if (reduceMotion) {
       // Reanimated shared values are intentionally mutated by the animation API.
       // eslint-disable-next-line react-hooks/immutability
@@ -242,7 +244,7 @@ export default function AddBookScreen() {
         },
       );
     }
-  }, [selectedCandidate, title, author, publisher, notes, coverUri, addBook, previewBook, reduceMotion, saveProgress, finishSave]);
+  }, [selectedCandidate, title, author, publisher, notes, coverUri, addBook, reduceMotion, saveProgress, finishSave]);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -261,9 +263,12 @@ export default function AddBookScreen() {
               phase={saveState}
               book={savedBook ?? previewBook}
               error={saveError}
+              warning={saveWarning}
               progress={saveProgress}
               onRetry={() => {
                 setSaveState('idle');
+                setSaveError('');
+                setSaveWarning(null);
                 // eslint-disable-next-line react-hooks/immutability
                 saveProgress.value = 0;
               }}
@@ -485,6 +490,7 @@ function SaveExperience({
   phase,
   book,
   error,
+  warning,
   progress,
   onRetry,
   onDone,
@@ -492,6 +498,7 @@ function SaveExperience({
   phase: 'saving' | 'success' | 'error';
   book: Book;
   error: string;
+  warning: string | null;
   progress: SharedValue<number>;
   onRetry: () => void;
   onDone: () => void;
@@ -545,6 +552,7 @@ function SaveExperience({
           </View>
           {phase === 'success' ? (
             <>
+              {warning ? <AppText variant="caption" color="secondary" style={styles.saveWarning}>{warning}</AppText> : null}
               <AppText variant="label" style={styles.successMessage} accessibilityRole="text">
                 A new story joins your wishlist.
               </AppText>
@@ -903,6 +911,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     textAlign: 'center',
   },
+  saveWarning: { maxWidth: 340, marginTop: spacing.md, textAlign: 'center' },
   saveHint: {
     marginTop: -spacing.xl,
     textAlign: 'center',

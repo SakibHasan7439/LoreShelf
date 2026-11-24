@@ -17,6 +17,10 @@ export type BookCoverSource = 'custom' | 'google-books' | 'open-library';
 
 export interface Book {
   id: string;
+  /** Catalog Book ID returned by the backend. */
+  bookId?: string;
+  /** UserBook ID returned by the backend; `id` remains this value for route compatibility. */
+  userBookId?: string;
   title: string;
   author: string;
   description?: string;
@@ -29,6 +33,7 @@ export interface Book {
   coverSource?: BookCoverSource;
   coverTheme: CoverTheme;
   publisher?: string;
+  genre?: string;
   isbn?: string;
   publicationDate?: string;
   externalId?: string;
@@ -47,6 +52,7 @@ export interface Book {
   ownership: Ownership;
   shelves: ShelfId[];
   isFavorite: boolean;
+  rating?: number;
   finishedAt?: string;
 }
 
@@ -68,6 +74,7 @@ export interface NewBookInput {
   coverSource?: BookCoverSource;
   isbn?: string;
   publicationDate?: string;
+  publishedYear?: number;
   externalId?: string;
   providerSource?: 'google-books' | 'open-library';
   pageCount?: number;

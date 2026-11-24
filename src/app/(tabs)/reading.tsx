@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { BookCard } from '@/components/BookCard';
+import { LibraryFeedback } from '@/components/library/LibraryFeedback';
 import { AppText } from '@/components/ui/AppText';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -13,6 +14,11 @@ const statuses: readonly ReadingStatus[] = ['reading', 'on-hold', 'completed'];
 
 export default function ReadingScreen() {
   const books = useLibraryStore((state) => state.books);
+  const isLoading = useLibraryStore((state) => state.isLoading);
+  const hasLoaded = useLibraryStore((state) => state.hasLoaded);
+  const error = useLibraryStore((state) => state.error);
+  const loadLibrary = useLibraryStore((state) => state.loadLibrary);
+  const dismissError = useLibraryStore((state) => state.dismissError);
   const openBook = useOpenBook();
   const booksByStatus = useMemo(
     () =>
@@ -29,9 +35,20 @@ export default function ReadingScreen() {
       <AppText color="secondary" style={{ marginBottom: spacing.xl }}>
         Keep track of the stories in motion.
       </AppText>
-      {booksByStatus.map(({ status, books: matching }) => (
-        <Section key={status} title={status} books={matching} onOpen={openBook} />
-      ))}
+      {!hasLoaded ? (
+        <LibraryFeedback
+          loading={isLoading || !error}
+          message={error}
+          onRetry={error ? () => { void loadLibrary(); } : undefined}
+        />
+      ) : (
+        <>
+          {error ? <LibraryFeedback message={error} onDismiss={dismissError} /> : null}
+          {booksByStatus.map(({ status, books: matching }) => (
+            <Section key={status} title={status} books={matching} onOpen={openBook} />
+          ))}
+        </>
+      )}
     </Screen>
   );
 }

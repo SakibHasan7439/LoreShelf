@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BookCard } from '@/components/BookCard';
+import { LibraryFeedback } from '@/components/library/LibraryFeedback';
 import { AppText } from '@/components/ui/AppText';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
@@ -14,6 +15,11 @@ import { sortByAddedAtDesc } from '@/utils/book';
 
 export default function CollectionScreen() {
   const books = useLibraryStore((state) => state.books);
+  const isLoading = useLibraryStore((state) => state.isLoading);
+  const hasLoaded = useLibraryStore((state) => state.hasLoaded);
+  const error = useLibraryStore((state) => state.error);
+  const loadLibrary = useLibraryStore((state) => state.loadLibrary);
+  const dismissError = useLibraryStore((state) => state.dismissError);
   const openBook = useOpenBook();
   const collection = useMemo(
     () => sortByAddedAtDesc(books.filter((book) => book.ownership === 'owned')),
@@ -36,9 +42,20 @@ export default function CollectionScreen() {
         <View style={styles.shelvesCopy}><AppText variant="meta">My bookshelves</AppText><AppText variant="caption" color="muted">Arrange your collection into personal shelves</AppText></View>
         <AppText variant="meta" color="gold">Open</AppText>
       </PressableScale>
-      {collection.length ? collection.map((book) => (
-        <BookCard key={book.id} book={book} onPress={() => openBook(book.id)} />
-      )) : <AppText color="muted">Your collection is empty.</AppText>}
+      {!hasLoaded ? (
+        <LibraryFeedback
+          loading={isLoading || !error}
+          message={error}
+          onRetry={error ? () => { void loadLibrary(); } : undefined}
+        />
+      ) : (
+        <>
+          {error ? <LibraryFeedback message={error} onDismiss={dismissError} /> : null}
+          {collection.length ? collection.map((book) => (
+            <BookCard key={book.id} book={book} onPress={() => openBook(book.id)} />
+          )) : <AppText color="muted">Your collection is empty.</AppText>}
+        </>
+      )}
     </Screen>
   );
 }
